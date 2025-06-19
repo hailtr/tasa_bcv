@@ -25,15 +25,13 @@ def obtener_tasa():
             "monto": tasa[2]
         })
 
-    return jsonify({"error": f"No hay tasa registrada para {fecha}"}), 404
-
 @bp.route("/api/tasa/rango", methods=["GET"])
 def obtener_rango():
     desde = request.args.get("desde")
     hasta = request.args.get("hasta")
 
     if not desde or not hasta:
-        return jsonify({"error": "Debes especificar los parámetros 'desde' y 'hasta'"}), 400
+        return jsonify({"error": "Debes especificar los parametros 'desde' y 'hasta' en la url, por ejemplo: /api/tasa/rango?desde=YYYY-MM-DD&hasta=YYYY-MM-DD"}), 400
 
     try:
         datetime.strptime(desde, "%Y-%m-%d")
