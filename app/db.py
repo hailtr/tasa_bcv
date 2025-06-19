@@ -1,68 +1,52 @@
-import sqlite3
-from pathlib import Path
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-DB_PATH = Path(__file__).resolve().parent.parent / "tasas.db"
+# Usa DATABASE_URL desde variable de entorno (Railway, GitHub, local)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def conectar():
-    return sqlite3.connect(DB_PATH)
-
-def inicializar_db():
-    with conectar() as conn:
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS tasas (
-            fecha TEXT PRIMARY KEY,     -- 'YYYY-MM-DD'
-            url TEXT NOT NULL,
-            monto REAL NOT NULL)
-                ''')
-        conn.commit()
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def insertar_tasa(fecha, url, monto):
     with conectar() as conn:
-        conn.execute('''
-            INSERT OR REPLACE INTO tasas (fecha, url, monto)
-            VALUES (?, ?, ?)
-        ''', (fecha, url, monto))
+        with conn.cursor() as cur:
+            cur.execute('''
+                INSERT INTO tasas (fecha, url, monto)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (fecha)
+                DO UPDATE SET url = EXCLUDED.url, monto = EXCLUDED.monto;
+            ''', (fecha, url, monto))
         conn.commit()
 
-def obtener_tasa(fecha):
+def mostrar_ultima():
     with conectar() as conn:
-        cur = conn.execute('SELECT fecha, url, monto FROM tasas WHERE fecha = ?', (fecha,))
-        return cur.fetchone()
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT fecha, url, monto
+                FROM tasas
+                ORDER BY fecha DESC
+                LIMIT 1;
+            ''')
+            return cur.fetchone()
 
-def obtener_ultima_tasa():
+def mostrar_por_fecha(fecha):
     with conectar() as conn:
-        cur = conn.execute('SELECT fecha, url, monto FROM tasas ORDER BY fecha DESC LIMIT 1')
-        fila = cur.fetchone()
-        if fila:
-            return {"fecha": fila[0], "url": fila[1], "monto": fila[2]}
-        return None
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT fecha, url, monto
+                FROM tasas
+                WHERE fecha = %s;
+            ''', (fecha,))
+            return cur.fetchone()
 
-def obtener_todas_las_tasas():
+def mostrar_rango(desde, hasta):
     with conectar() as conn:
-        cur = conn.execute('SELECT fecha, url, monto FROM tasas ORDER BY fecha DESC')
-        return cur.fetchall()
-
-#funcion para ver todas las tasas
-def ver_todas_las_tasas():
-    tasas = obtener_todas_las_tasas()
-    if tasas:
-        for fecha, url, monto in tasas:
-            print(f"{fecha} - {url} - {monto}")
-    else:
-        print("No hay tasas registradas.")
-
-# ver_todas_las_tasas()
-
-def obtener_tasas_en_rango(desde, hasta):
-    with conectar() as conn:
-        cur = conn.execute('''
-            SELECT fecha, url, monto
-            FROM tasas
-            WHERE fecha BETWEEN ? AND ?
-            ORDER BY fecha ASC
-        ''', (desde, hasta))
-        filas = cur.fetchall()
-        return [
-            {"fecha": fila[0], "url": fila[1], "monto": fila[2]}
-            for fila in filas
-        ]
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT fecha, url, monto
+                FROM tasas
+                WHERE fecha BETWEEN %s AND %s
+                ORDER BY fecha ASC;
+            ''', (desde, hasta))
+            return cur.fetchall()
