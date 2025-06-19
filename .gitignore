@@ -5,3 +5,5 @@ historico.py
 __pycache__/
 *.py[cod]
 .env
+migracion.py
+.gitignore

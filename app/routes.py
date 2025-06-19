@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.db import obtener_ultima_tasa, obtener_tasa as obtener_tasa_por_fecha, obtener_tasas_en_rango
+from app.db import mostrar_ultima as obtener_ultima_tasa, mostrar_por_fecha as obtener_tasa_por_fecha, mostrar_rango as obtener_tasas_en_rango
 from datetime import datetime
 
 bp = Blueprint("routes", __name__)

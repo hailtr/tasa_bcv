@@ -1,6 +1,9 @@
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Usa DATABASE_URL desde variable de entorno (Railway, GitHub, local)
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -50,3 +53,9 @@ def mostrar_rango(desde, hasta):
                 ORDER BY fecha ASC;
             ''', (desde, hasta))
             return cur.fetchall()
+
+def quien_soy():
+    with conectar() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT current_user;")
+            print("[DEBUG] Usuario actual:", cur.fetchone()['current_user'])
