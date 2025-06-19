@@ -1,19 +1,21 @@
 from scrapper import scrapear_bcv
-from app.db import inicializar_db, insertar_tasa
-from datetime import datetime
+from app.db import insertar_tasa
 import os
+from dotenv import load_dotenv
 
-DB_PATH = "tasas.db"
+load_dotenv()
 
-if not os.path.exists(DB_PATH):
-    print("[INFO] Creando base de datos...")
-    inicializar_db()
+def scrapear_y_guardar():
+    print("[INFO] Ejecutando scraping BCV...")
+    try:
+        tasa = scrapear_bcv()
+        if tasa:
+            insertar_tasa(tasa['fecha'], tasa['url'], tasa['monto'])
+            print(f"[✅] Tasa registrada: {tasa['fecha']} = {tasa['monto']}")
+        else:
+            print("[⚠️] No se obtuvo tasa del BCV")
+    except Exception as e:
+        print(f"[❌] Error en scraping BCV: {e}")
 
 if __name__ == "__main__":
-    print(f"[INFO] Ejecutando scraping BCV {datetime.now()}")
-    tasa = scrapear_bcv()
-    if tasa:
-        insertar_tasa(tasa["fecha"], tasa["url"], tasa["monto"])
-        print(f"[OK] Tasa guardada: {tasa}")
-    else:
-        print("[ERROR] No se pudo obtener la tasa desde BCV.")
+    scrapear_y_guardar()
