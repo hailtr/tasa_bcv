@@ -31,7 +31,7 @@ def obtener_rango():
     hasta = request.args.get("hasta")
 
     if not desde or not hasta:
-        return jsonify({"error": "Debes especificar los parametros 'desde' y 'hasta' en la url, por ejemplo: /api/tasa/rango?desde=YYYY-MM-DD&hasta=YYYY-MM-DD"}), 400
+        return jsonify({"error": "Debes especificar los parametros 'desde' y 'hasta'"}), 400
 
     try:
         datetime.strptime(desde, "%Y-%m-%d")
@@ -40,9 +40,6 @@ def obtener_rango():
         return jsonify({"error": "Formato de fecha inválido (usa YYYY-MM-DD)"}), 400
 
     tasas = obtener_tasas_en_rango(desde, hasta)
-
-    for t in tasas:
-        if hasattr(t['fecha'], "strftime"):
-            t['fecha'] = t['fecha'].strftime("%Y-%m-%d")
+    tasas = [serializar_tasa(t) for t in tasas]
 
     return jsonify(tasas)
