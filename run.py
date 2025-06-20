@@ -1,5 +1,5 @@
 from scrapper import scrapear_bcv
-from app.db import insertar_tasa, obtener_ultima_tasa, inicializar_db
+from app.db import insertar_tasa, mostrar_ultima as ultima_tasa
 from datetime import datetime
 from app import app
 
@@ -13,7 +13,7 @@ def registrar_desde_bcv():
         print("[ERROR] No se pudo obtener la tasa desde BCV.")
 
 def mostrar_ultima():
-    tasa = obtener_ultima_tasa()
+    tasa = ultima_tasa()
     if tasa:
         print(f"[CONSULTA] Última tasa registrada: {tasa}")
     else:

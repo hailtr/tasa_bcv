@@ -3,13 +3,27 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 load_dotenv()
-
+import time
 
 # Usa DATABASE_URL desde variable de entorno (Railway, GitHub, local)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-def conectar():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+def conectar(max_reintentos=5, espera_inicial=1):
+    intento = 0
+    while intento < max_reintentos:
+        try:
+            conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+            return conn
+        except psycopg2.OperationalError as e:
+            intento += 1
+            espera = espera_inicial * (2 ** (intento - 1))  # Exponencial
+            print(f"[ERROR] Fallo al conectar (intento {intento}/{max_reintentos}): {e}")
+            if intento < max_reintentos:
+                print(f"[INFO] Reintentando en {espera:.1f} segundos...")
+                time.sleep(espera)
+            else:
+                raise Exception("No se pudo conectar a la base de datos después de varios intentos") from e
+
 
 def insertar_tasa(fecha, url, monto):
     with conectar() as conn:
