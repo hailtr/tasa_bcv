@@ -4,27 +4,26 @@ from datetime import datetime
 
 bp = Blueprint("routes", __name__)
 
+def serializar_tasa(tasa):
+    return {
+        "fecha": tasa["fecha"].strftime("%Y-%m-%d") if hasattr(tasa["fecha"], "strftime") else tasa["fecha"],
+        "url": tasa["url"],
+        "monto": tasa["monto"]
+    }
+
 @bp.route("/api/tasa", methods=["GET"])
 def obtener_tasa():
     fecha = request.args.get("fecha")
 
     if not fecha:
         tasa = obtener_ultima_tasa()
-        if tasa:
-            return jsonify(tasa)
-        return jsonify({"error": "No hay tasa registrada"}), 404
-
-    tasa = obtener_tasa_por_fecha(fecha)
+    else:
+        tasa = obtener_tasa_por_fecha(fecha)
 
     if tasa is None:
-        return jsonify({"error": f"No hay tasa registrada para {fecha}"}), 404
-    else: 
-        fecha_formateada = tasa[0].strftime("%Y-%m-%d") if hasattr(tasa[0], "strftime") else tasa[0]
-        return jsonify({
-            "fecha": fecha_formateada,
-            "url": tasa[1],
-            "monto": tasa[2]
-        })
+        return jsonify({"error": f"No hay tasa registrada para {fecha or 'hoy'}"}), 404
+
+    return jsonify(serializar_tasa(tasa))
 
 @bp.route("/api/tasa/rango", methods=["GET"])
 def obtener_rango():
@@ -45,5 +44,5 @@ def obtener_rango():
     for t in tasas:
         if hasattr(t['fecha'], "strftime"):
             t['fecha'] = t['fecha'].strftime("%Y-%m-%d")
-            
+
     return jsonify(tasas)
