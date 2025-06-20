@@ -19,8 +19,9 @@ def obtener_tasa():
     if tasa is None:
         return jsonify({"error": f"No hay tasa registrada para {fecha}"}), 404
     else: 
+        fecha_formateada = tasa[0].strftime("%Y-%m-%d") if hasattr(tasa[0], "strftime") else tasa[0]
         return jsonify({
-            "fecha": tasa[0],
+            "fecha": fecha_formateada,
             "url": tasa[1],
             "monto": tasa[2]
         })
@@ -40,4 +41,9 @@ def obtener_rango():
         return jsonify({"error": "Formato de fecha inválido (usa YYYY-MM-DD)"}), 400
 
     tasas = obtener_tasas_en_rango(desde, hasta)
+
+    for t in tasas:
+        if hasattr(t['fecha'], "strftime"):
+            t['fecha'] = t['fecha'].strftime("%Y-%m-%d")
+            
     return jsonify(tasas)
