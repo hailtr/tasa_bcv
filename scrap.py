@@ -1,3 +1,4 @@
+# Version: 1.0a
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup

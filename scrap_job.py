@@ -1,4 +1,4 @@
-from scrapper import scrapear_bcv
+from scrap import scrapear_bcv
 from app.db import insertar_tasa
 import os
 from dotenv import load_dotenv

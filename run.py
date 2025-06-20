@@ -1,4 +1,4 @@
-from scrapper import scrapear_bcv
+from scrap import scrapear_bcv
 from app.db import insertar_tasa, mostrar_ultima as ultima_tasa
 from datetime import datetime
 from app import app
