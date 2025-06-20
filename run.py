@@ -2,10 +2,6 @@ from scrapper import scrapear_bcv
 from app.db import insertar_tasa, mostrar_ultima as ultima_tasa
 from datetime import datetime
 from app import app
-import os
-
-print("[DEBUG] DATABASE_URL:", os.getenv("DATABASE_URL"))
-
 
 def registrar_desde_bcv():
     print(f"[INFO] Ejecutando scraping BCV {datetime.now()}")
