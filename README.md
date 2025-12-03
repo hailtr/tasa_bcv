@@ -1,117 +1,306 @@
-# 📈 BCV Exchange Rate API / API de tasas del BCV
+# 📈 BCV Exchange Rate API - Community Edition 🇻🇪
 
-Consulta actualizada y automática del tipo de cambio oficial en Venezuela publicado por el BCV. Esta API permite obtener la tasa más reciente o consultar tasas históricas a partir de una base de datos alimentada por un scrapper diario.
+**Consulta actualizada y automática del tipo de cambio oficial en Venezuela.** <br>
+Free, public API for Venezuelan Central Bank (BCV) official exchange rates.
 
-Automatically updated API to consult the official exchange rate in Venezuela, published by the BCV. It provides access to the latest rate or historical data, populated via a daily scraping job.
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
 
 ---
 
-## Endpoints disponibles / Available Endpoints
+## 🌍 Public Community API
 
-### Última tasa / Latest Rate
+**Use it for free - no signup needed!**
 
+```bash
+# Get latest rate
+curl https://tasa-bcv-api-XXXXXX.run.app/api/tasa
+
+# Get rate for specific date
+curl https://tasa-bcv-api-XXXXXX.run.app/api/tasa?fecha=2025-12-02
+
+# Get range
+curl https://tasa-bcv-api-XXXXXX.run.app/api/tasa/rango?desde=2025-12-01&hasta=2025-12-10
 ```
+
+### 📊 Interactive Documentation
+Visit `/docs` on any deployed instance for full Swagger UI documentation.
+
+### ⚡ Rate Limits
+- **Anonymous**: 100 requests/hour per IP
+- **Shared pool**: 500K requests/month for the community
+- **Cached responses**: Latest rate cached for 1 hour
+
+---
+
+## 🚀 Deploy Your Own (100% Free!)
+
+**Need more requests? Deploy your own instance in 2 minutes:**
+
+### Option 1: One-Click Deploy
+
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
+
+### Option 2: CLI Deploy
+
+```bash
+# Clone the repo
+git clone https://github.com/yourname/tasa-bcv
+cd tasa-bcv
+
+# Run setup script
+chmod +x scripts/setup-gcp.sh
+./scripts/setup-gcp.sh YOUR_PROJECT_ID
+
+# Done! 🎉
+```
+
+**Requirements:**
+- Free GCP account ([create one here](https://cloud.google.com/free))
+- `gcloud` CLI installed ([install guide](https://cloud.google.com/sdk/docs/install))
+
+**Your free tier includes:**
+- 2M API requests/month (Cloud Run)
+- 10GB storage + 1TB queries/month (BigQuery)
+- Daily automated scraping (Cloud Functions + Scheduler)
+
+**Total cost: $0/month** 💰
+
+---
+
+## 📖 API Endpoints
+
+### Latest Rate
+```http
 GET /api/tasa
 ```
 
-Retorna la tasa más reciente registrada.
-
-Returns the most recent rate available.
+**Response:**
+```json
+{
+  "fecha": "2025-12-02",
+  "url": "https://www.bcv.org.ve/",
+  "monto": 45.67
+}
+```
 
 ---
 
-### Tasa por fecha / Rate by Date
-
-```
+### Rate by Date
+```http
 GET /api/tasa?fecha=YYYY-MM-DD
 ```
 
-Ejemplo / Example:
-```
-GET /api/tasa?fecha=2025-06-10
-```
-
----
-
-### Rango de fechas / Date Range
-
-```
-GET /api/tasa?rango=YYYY-MM-DD_YYYY-MM-DD
-```
-
-Ejemplo / Example:
-```
-GET /api/tasa?rango?desde=2025-06-01&hasta=2025-06-10
+**Example:**
+```bash
+curl https://your-api.run.app/api/tasa?fecha=2025-06-10
 ```
 
 ---
 
-##  Configuración del entorno / Environment Configuration
-
-Define tu variable `DATABASE_URL` en un archivo `.env`:
-
-```env
-DATABASE_URL=postgresql://usuario:contraseña@host:puerto/tasa_bcv
+### Date Range
+```http
+GET /api/tasa/rango?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
 ```
 
-You must define `DATABASE_URL` in your `.env` file or environment variables.
+**Example:**
+```bash
+curl "https://your-api.run.app/api/tasa/rango?desde=2025-06-01&hasta=2025-06-10"
+```
+
+**Response:**
+```json
+[
+  {"fecha": "2025-06-01", "url": "...", "monto": 45.12},
+  {"fecha": "2025-06-02", "url": "...", "monto": 45.34},
+  ...
+]
+```
 
 ---
 
-## Despliegue automático / Automated Deployment
+### Health Check
+```http
+GET /health
+```
 
-La API puede desplegarse en [Railway](https://railway.app/) o cualquier servicio compatible con Gunicorn.  
-El scrapper se ejecuta automáticamente mediante [GitHub Actions](https://github.com/features/actions) configurado con cron.
-
-The API can be deployed via Railway or any Gunicorn-compatible host.  
-The scrapper runs automatically using GitHub Actions + cron job.
+Check API and database status.
 
 ---
 
-## Requisitos / Requirements
+### Metrics
+```http
+GET /metrics
+```
 
-- Python 3.11+
-- PostgreSQL (Railway recomendado)
-- Gunicorn
-- Flask
-- Requests
-- python-dotenv
-- psycopg2-binary
+Get simple usage metrics.
 
-Instalación:
+---
+
+## 🏗️ Architecture
+
+**Stack:**
+- **API**: FastAPI (Python 3.11) on Cloud Run
+- **Database**: BigQuery (partitioned by date)
+- **Scraper**: Cloud Functions (daily at 9 AM UTC)
+- **Scheduler**: Cloud Scheduler
+- **Rate Limiting**: SlowAPI (in-memory)
+- **Caching**: In-memory (1 hour TTL for latest rate)
+
+**Why BigQuery?**
+- 10GB storage free (enough for decades of daily rates)
+- 1TB queries/month free (millions of API calls)
+- Serverless, zero maintenance
+- Perfect for time-series data
+
+**Why Cloud Run?**
+- Scales to zero (pay nothing when idle)
+- 2M requests/month free
+- Auto-scales with traffic
+- HTTPS included
+
+---
+
+## 🛠️ Local Development
 
 ```bash
+# Clone repo
+git clone https://github.com/yourname/tasa-bcv
+cd tasa-bcv
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your GCP project ID
+
+# Run locally
+uvicorn app.main:app --reload
+
+# Visit http://localhost:8000/docs
 ```
 
 ---
 
-## Estructura del Proyecto / Project Structure
+## 📝 Configuration
 
+Create a `.env` file:
+
+```env
+GCP_PROJECT_ID=your-project-id
+BIGQUERY_DATASET=tasa_bcv
 ```
-.
-├── app/
-│   ├── __init__.py
-│   ├── routes.py
-│   └── db.py
-├── scrap_job.py          ← Scrapper que guarda en PostgreSQL
-├── run.py                ← Lanza el servidor Flask
-├── requirements.txt
-├── .env                  ← Configuración local
-├── .github/
-│   └── workflows/
-│       └── scrap_job.yml ← Cron para scraping diario
+
+For local development with Application Default Credentials:
+```bash
+gcloud auth application-default login
 ```
 
 ---
 
-## Autor / Author
+## 🤝 Community Guidelines
+
+This is a **free community resource**. Please:
+
+✅ Use responsibly  
+✅ Respect rate limits  
+✅ Deploy your own if you need more requests  
+✅ Contribute improvements via PR  
+✅ Report issues on GitHub  
+
+❌ Don't abuse the service  
+❌ Don't resell the raw data  
+❌ Don't hammer the BCV website directly  
+
+---
+
+## 🔄 How It Works
+
+1. **Cloud Scheduler** triggers Cloud Function daily at 9 AM UTC
+2. **Cloud Function** scrapes BCV website
+3. **BigQuery** stores the exchange rate
+4. **Cloud Run API** serves cached/fresh data
+5. **Rate limiter** ensures fair usage
+
+---
+
+## 📊 Monitoring
+
+**GCP Console Links:**
+- [BigQuery Console](https://console.cloud.google.com/bigquery)
+- [Cloud Run Console](https://console.cloud.google.com/run)
+- [Cloud Scheduler Console](https://console.cloud.google.com/cloudscheduler)
+- [Cloud Functions Console](https://console.cloud.google.com/functions)
+- [Cloud Logging](https://console.cloud.google.com/logs)
+
+---
+
+## 🚧 Maintenance
+
+**Update deployment:**
+```bash
+./scripts/deploy.sh YOUR_PROJECT_ID
+```
+
+**Manually trigger scraper:**
+```bash
+gcloud scheduler jobs run bcv-daily-scraper --location=us-central1
+```
+
+**Check logs:**
+```bash
+gcloud run logs tail tasa-bcv-api
+gcloud functions logs read scrape_bcv_rate
+```
+
+---
+
+## 🙋 FAQ
+
+**Q: Is this really free?**  
+A: Yes! Stays within GCP free tier for moderate usage.
+
+**Q: What if I exceed free tier?**  
+A: Cloud Run charges $0.40 per million requests after 2M. Still super cheap!
+
+**Q: Can I use this commercially?**  
+A: Yes! It's public BCV data. Just be respectful.
+
+**Q: How often is data updated?**  
+A: Daily at 9 AM UTC (5 AM VET).
+
+**Q: Can I change the scraping schedule?**  
+A: Yes! Edit the cron expression in Cloud Scheduler.
+
+---
+
+## 📜 License
+
+MIT License - See LICENSE file
+
+Data source: [Banco Central de Venezuela](https://www.bcv.org.ve/)
+
+---
+
+## 👨‍💻 Author
 
 Rafael Ortiz  
-[https://github.com/hailtr](https://github.com/hailtr)
+[GitHub](https://github.com/hailtr)
 
 ---
 
-## Licencia / License
+## 🌟 Contributing
 
-MIT License
+PRs welcome! Please:
+1. Fork the repo
+2. Create a feature branch
+3. Test your changes
+4. Submit a PR
+
+---
+
+**Made with ❤️ for the Venezuelan community** 🇻🇪

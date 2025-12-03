@@ -1,0 +1,19 @@
+{
+    "name": "tasa-bcv-api",
+    "description": "BCV Exchange Rate API - Free community API for Venezuelan exchange rates",
+    "env": [
+        {
+            "name": "GCP_PROJECT_ID",
+            "description": "Your GCP Project ID",
+            "value": ""
+        },
+        {
+            "name": "BIGQUERY_DATASET",
+            "description": "BigQuery dataset name",
+            "value": "tasa_bcv"
+        }
+    ],
+    "options": {
+        "allow-unauthenticated": true
+    }
+}
