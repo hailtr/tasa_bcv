@@ -11,30 +11,39 @@ def scrape_bcv_rate(request):
     HTTP Cloud Function triggered by Cloud Scheduler
     Scrapes BCV website and stores rate in BigQuery
     """
-    print(f"[INFO] Starting BCV scrape at {datetime.now()}")
+    print(f"[CHECKPOINT 1] Function triggered at {datetime.now()}")
     
     try:
+        print("[CHECKPOINT 2] Starting scraper...")
         tasa = scrapear_bcv()
         
-        if tasa:
-            insertar_tasa(tasa["fecha"], tasa["url"], tasa["monto"])
-            print(f"[OK] Tasa guardada exitosamente: {tasa}")
-            
-            return {
-                "status": "success",
-                "message": "Rate scraped and stored successfully",
-                "data": tasa
-            }, 200
-        else:
-            print("[ERROR] No se pudo obtener la tasa desde BCV")
+        if not tasa:
+            print("[CHECKPOINT 3] Scraper returned None - BCV scraping failed")
             return {
                 "status": "error",
-                "message": "Failed to scrape BCV website"
+                "checkpoint": 3,
+                "message": "Failed to scrape BCV website - check if site is accessible"
             }, 500
+        
+        print(f"[CHECKPOINT 4] Scraper succeeded! Data: {tasa}")
+        
+        print("[CHECKPOINT 5] Attempting to save to BigQuery...")
+        insertar_tasa(tasa["fecha"], tasa["url"], tasa["monto"])
+        
+        print(f"[CHECKPOINT 6] BigQuery save successful!")
+        return {
+            "status": "success",
+            "checkpoint": 6,
+            "message": "Rate scraped and stored successfully",
+            "data": tasa
+        }, 200
             
     except Exception as e:
-        print(f"[ERROR] Exception during scraping: {e}")
+        error_msg = str(e)
+        print(f"[CHECKPOINT ERROR] Exception: {error_msg}")
         return {
             "status": "error",
-            "message": str(e)
+            "checkpoint": "exception",
+            "message": error_msg,
+            "error_type": type(e).__name__
         }, 500

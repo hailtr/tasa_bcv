@@ -9,8 +9,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def scrapear_bcv():
     url = "https://www.bcv.org.ve/"
     try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, verify=False)
+        # More realistic browser headers to avoid anti-bot detection
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "es-VE,es;q=0.9,en;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
+        }
+        response = requests.get(url, headers=headers, verify=False, timeout=30)
 
         if response.status_code != 200:
             raise ConnectionError(f"BCV no respondió correctamente. Status: {response.status_code}")
